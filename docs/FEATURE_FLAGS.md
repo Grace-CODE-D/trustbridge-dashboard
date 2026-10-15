@@ -1,1 +1,160 @@
-IyBGZWF0dXJlIGZsYWdzCgrGkCBCYWNrIHRvIFtSRUFETUVdKC4uL1JFQURNRS5tZCkgwrcgU2VlIGFsc28gW0Vudmlyb25tZW50IHZhcmlhYmxlc10oLi9FTlZJUk9OTUVOVC5tZCkKCmBzcmMvbGliL2ZlYXR1cmUtZmxhZ3MudHNgIGlzIGEgc21hbGwgZmxhZ3MgaGVscGVyIHdpdGggdHdvIHNvdXJjZXMgKGVudiBhbmQgYW4Kb3B0aW9uYWwgZGF0YWJhc2UgdGFibGUpIHBsdXMgYSBidWlsdC1pbiBkZWZhdWx0IHBlciBmbGFnLiBJdCBleGlzdHMgc28gc2hpcHBpbmctZnJlZXplIHdpbmRvd3MsIG5ldyB3ZWJob29rcywgaTE4biwgYW5kIG90aGVyIHJpc2t5IGNoYW5nZXMgY2FuIGJlCmdhdGVkIHdpdGhvdXQgYSBkZXBsb3kg4oCUIGFuZCB0dXJuZWQgKipvZmYqKiBmYXN0IGR1cmluZyBhIFdhdmUuCgpPdXQgb2Ygc2NvcGU6IExhdW5jaERhcmtseSAvIGEgaG9zdGVkIGZsYWcgc2VydmljZS4gQW4gaW4tYXBwIGFkbWluIFVJIGlzCm9wdGlvbmFsOyBgc2V0RmVhdHVyZUZsYWcoKWAgYW5kIGBnZXRBbGxGZWF0dXJlRmxhZ3MoKWAgYXJlIHByb3ZpZGVkIGZvciBvbmUuCkFuIGFkbWluLW9ubHkgcmVhZC1vbmx5IHBhbmVsIGxpdmVzIGF0IGAvZGFzaGJvYXJkL3NldHRpbmdzYCBhbmQgbGlzdHMgZWFjaApmbGFnJ3Mga2V5LCByZXNvbHZlZCB2YWx1ZSBhbmQgc291cmNlLgoKLS0tCgojIyBSZXNvbHV0aW9uIG9yZGVyCgpGb3IgZXZlcnkgZmxhZywgdGhlIGZpcnN0IHNvdXJjZSB0aGF0IHByb2R1Y2VzIGEgdmFsdWUgd2luczoKCjEuICoqRW52IG92ZXJyaWRlKiog4oCUIGBGRUFUVVJFX0ZMQUdfPEtFWT5gIChlLmcuIGBGRUFUVVJFX0ZMQUdfQkFUQ0hfUkVDSEVDSz1vZmZgKS4KICAgQWNjZXB0ZWQgdHJ1dGh5IHZhbHVlczogYDFgLCBgdHJ1ZWAsIGBvbmAsIGB5ZXNgLCBgZW5hYmxlZGA7IGZhbHN5OiBgMGAsCiAgIGBmYWxzZWAsIGBvZmZgLCBgbm9gLCBgZGlzYWJsZWRgIChjYXNlLWluc2Vuc2l0aXZlKS4gQW4gdW5yZWNvZ25pc2VkIHZhbHVlIGlzCiAgIGlnbm9yZWQgYW5kIHJlc29sdXRpb24gZmFsbHMgdGhyb3VnaC4KMi4gKipEYXRhYmFzZSByb3cqKiDigJQgYSBgRmVhdHVyZUZsYWdgIHJvdywgKipvbmx5Kiogd2hlbiBgRkVBVFVSRV9GTEFHU19EQl9FTkFCTEVEYAogICBpcyB0cnV0aHkuIFJlYWRzIGFyZSBjYWNoZWQgaW4tcHJvY2VzcyBmb3IgYEZFQVRVUkVfRkxBR1NfQ0FDSEVfVFRMX01TYAogICAoZGVmYXVsdCAzMHMpOyBgY2xlYXJGZWF0dXJlRmxhZ0NhY2hlKClgIGlzIGNhbGxlZCBhdXRvbWF0aWNhbGx5IGFmdGVyCiAgIGBzZXRGZWF0dXJlRmxhZygpYC4KMy4gKipCdWlsdC1pbiBkZWZhdWx0Kiog4oCUIHRoZSBgZGVmYXVsdGAgaW4gYEZFQVRVUkVfRkxBR1NgLgoKIyMjIEZhaWwgY2xvc2VkCgpGbGFncyBtYXJrZWQgYHJpc2t5YCBnYXRlIGEgbXV0YXRpbmcgb3IgZGVzdHJ1Y3RpdmUgcGF0aC4gSWYgdGhlIERCIHNvdXJjZSBpcwoqKmVuYWJsZWQgYnV0IHVucmVhZGFibGUqKiAoY29ubmVjdGlvbiBlcnJvciwgdGFibGUgbWlzc2luZywg4oCmKSBhIHJpc2t5IGZsYWcKcmVzb2x2ZXMgdG8gYGZhbHNlYCDigJQgbmV2ZXIgdG8gaXRzIGRlZmF1bHQuIEEgREIgb3V0YWdlIHRoZXJlZm9yZSAqY2xvc2VzKgpyaXNreSB3cml0ZXMgcmF0aGVyIHRoYW4gbGVhdmluZyB0aGVtIG9wZW4uIE5vbi1yaXNreSBmbGFncyBmYWxsIGJhY2sgdG8gdGhlaXIKZGVmYXVsdCBpbiB0aGUgc2FtZSBzaXR1YXRpb24uIEFuIGVudiBvdmVycmlkZSBhbHdheXMgd2lucywgZXZlbiB3aGVuIHRoZSBEQiBpcwpkb3duLgoKLS0tCgojIyBGcmVlemUgd2luZG93cwoKQSAqKmZyZWV6ZSB3aW5kb3cqKiBpcyBhIHBlcmlvZCAodHlwaWNhbGx5IGR1cmluZyBhIFdhdmUpIHdoZW4gcmlza3ksIG11dGF0aW5nCnBhdGhzIGFyZSB0dXJuZWQgb2ZmIHNvIGNvbnRyaWJ1dG9ycyBjYW4ndCBhY2NpZGVudGFsbHkgc2hpcCBvciByZS1xdWV1ZSB3b3JrLgpGcmVlemUgd2luZG93cyBhcmUgaW1wbGVtZW50ZWQgZW50aXJlbHkgd2l0aCB0aGUgZmxhZ3MgYmVsb3cg4oCUIHRoZXJlIGlzIG5vCnNlcGFyYXRlIGZyZWV6ZSBzdWJzeXN0ZW0uIFRvIG9wZW4gYSBmcmVlemUsIGZsaXAgdGhlIHJlbGV2YW50IGZsYWdzIG9mZiAoZW52Cm92ZXJyaWRlIG9yIERCIHJvdyk7IHRvIGNsb3NlIGl0LCBmbGlwIHRoZW0gYmFjayBvbi4KCnwgRmxhZyB8IEZyZWV6ZSBlZmZlY3Qgd2hlbiBvZmYgfAp8LS0tfC0tLXwKfCBgYmF0Y2hfcmVjaGVja2AgfCBgUE9TVCAvYXBpL2NvbnRyaWJ1dG9yc2AgcmV0dXJucyBgNDAzYCDigJQgbm8gcGVyLWNvbnRyaWJ1dG9yIEhvcml6b24gZmFuLW91dCB8CnwgYGludml0ZV9nZW5lcmF0aW9uYCB8IGBQT1NUIC9hcGkvaW52aXRlcy9nZW5lcmF0ZWAgcmV0dXJucyBgNDAzYCDigJQgaW52aXRlIGlzc3VhbmNlIGZyb3plbiB8CnwgYGRscV9yZXRyeWAgfCBgUE9TVCAvYXBpL2NvbnRyaWJ1dG9ycy9xdWV1ZS9kbHEvW2pvYklkXS9yZXRyeWAgcmV0dXJucyBgNDAzYCDigJQgZmFpbGVkIGpvYnMgc3RheSBwYXJrZWQgfAp8IGBtYWludGVuYW5jZV9tb2RlYCB8IENvbXBvc2VzIHdpdGggdGhlIGBNQUlOVEVOQU5DRWAgZW52IHZhciB0byB0YWtlIHRoZSBhcHAgcmVhZC1vbmx5IHwKCkJlY2F1c2UgdGhlc2UgZmxhZ3MgYXJlIGByaXNreWAsIGEgREIgb3V0YWdlIGR1cmluZyBhIGZyZWV6ZSBrZWVwcyB0aGVtICoq b2ZmKioKKGZhaWwgY2xvc2VkKSDigJQgc2VlIFtGYWlsIGNsb3NlZF0oI2ZhaWwtY2xvc2VkKSBhYm92ZS4gVGhlIGVudiB2YXJzIHRoYXQgZHJpdmUKZnJlZXplIHdpbmRvd3MgKGBGRUFUVVJFX0ZMQUdfKmAsIGBGRUFUVVJFX0ZMQUdTX0RCX0VOQUJMRURgLApgRkVBVFVSRV9GTEFHU19DQUNIRV9UVExfTVNgLCBgTUFJTlRFTkFOQ0VgKSBhcmUgZG9jdW1lbnRlZCBpbgpbRU5WSVJPTk1FTlQubWRdKC4vRU5WSVJPTk1FTlQubWQjZmVhdHVyZS1mbGFncy1hbmQtZnJlZXplLXdpbmRvd3MpLgoKLS0tCgojIyBUaGUgZmxhZ3MKCnwgS2V5IHwgRGVmYXVsdCB8IFJpc2t5IHwgR2F0ZXMgfCBEb2N1bWVudGVkIGF0IHwKfC0tLXwtLS18LS0tfC0tLXwtLS18CnwgYGJhdGNoX3JlY2hlY2tgIHwgYHRydWVgIHwg4pyFIHwgYFBPU1QgL2FwaS9jb250cmlidXRvcnNgIOKAlCBmdWxsIGJhdGNoIHJlY2hlY2sgKG9uZSBIb3Jpem9uIGNhbGwgcGVyIGNvbnRyaWJ1dG9yKSB8IGBzcmMvYXBwL2FwaS9jb250cmlidXRvcnMvcm91dGUudHNgIHwKfCBgaW52aXRlX2dlbmVyYXRpb25gIHwgYHRydWVgIHwg4pyFIHwgYFBPU1QgL2FwaS9pbnZpdGVzL2dlbmVyYXRlYCDigJQgYnVsayBpbnZpdGUgY29kZSBjcmVhdGlvbiB8IGBzcmMvYXBwL2FwaS9pbnZpdGVzL2dlbmVyYXRlL3JvdXRlLnRzYCB8CnwgYGRscV9yZXRyeWAgfCBgdHJ1ZWAgfCDinIUgfCBgUE9TVCAvYXBpL2NvbnRyaWJ1dG9ycy9xdWV1ZS9kbHEvW2pvYklkXS9yZXRyeWAg4oCUIHJlLXF1ZXVlIGEgZmFpbGVkIGpvYiB8IGBzcmMvYXBwL2FwaS9jb250cmlidXRvcnMvcXVldWUvZGxxL1tqb2JJZF0vcmV0cnkvcm91dGUudHNgIHwKfCBgbWFpbnRlbmFuY2VfbW9kZWAgfCBgZmFsc2VgIHwg4pyFIHwgQ29tcG9zZXMgd2l0aCB0aGUgYE1BSU5URU5BTkNFYCBlbnYgdmFyIChzZWUgW0RFUExPWU1FTlQubWRdKC4vREVQTE9ZTUVOVC5tZCNtYWludGVuYW5jZS1tb2RlKSkgfCBgc3JjL2xpYi9tYWludGVuYW5jZS50c2AgfAp8IGBvdGVsX3RyYWNlc2AgfCBgZmFsc2VgIHwg4oCUIHwgT3B0LWluIHRyYWNpbmc7IGNvbXBvc2VzIHdpdGggYE9URUxfVFJBQ0VTX0VOQUJMRURgIChzZWUgW0VOVklST05NRU5ULm1kXSguL0VOVklST05NRU5ULm1kI29wZW50ZWxlbWV0cnktdHJhY2luZy1pc3N1ZS0yMDMpKSB8IGBzcmMvbGliL3RyYWNpbmcudHNgIHwKfCBgZnJlZXplX3dpbmRvd2AgfCBgdHJ1ZWAgfCDinIUgfCBFbmZvcmNlcyB3YXZlIGZyZWV6ZS13aW5kb3cgYmxvY2tpbmcgb24gbXV0YXRpbmcgQVBJcy4gV2hlbiBPRkYsIGZyZWV6ZS13aW5kb3cgaGVscGVycyBuZXZlciBibG9jayByZXF1ZXN0cyByZWdhcmRsZXNzIG9mIGBGUkVFWkVfV0lORE9XXypgIGVudiB2YXJzLiB8IGBzcmMvbGliL2ZyZWV6ZS13aW5kb3cudHNgIHwKCiMjIyBUd28gZXhpc3Rpbmcgcmlza3kgZmVhdHVyZXMgYXJlIG5vdyBnYXRlZCAoaXNzdWUgIzIwMSkKCi0gKipCYXRjaCByZWNoZWNrKiogKGBiYXRjaF9yZWNoZWNrYCkuIFByZXZpb3VzbHkgYW55IG1haW50YWluZXIgYFBPU1RgIHRvCiAgYC9hcGkvY29udHJpYnV0b3JzYCBmYW5uZWQgb3V0IGEgSG9yaXpvbiBjYWxsIHBlciBjb250cmlidXRvciB3aXRoIG5vIGtpbGwKICBzd2l0Y2guIE5vdyBpdCByZXR1cm5zIGA0MDMgeyAiZXJyb3IiOiAiQmF0Y2ggcmVjaGVjayBpcyBjdXJyZW50bHkgZGlzYWJsZWQiIH1gCiAgd2hlbiB0aGUgZmxhZyBpcyBvZmYuCi0gKipJbnZpdGUgZ2VuZXJhdGlvbioqIChgaW52aXRlX2dlbmVyYXRpb25gKS4gYC9hcGkvaW52aXRlcy9nZW5lcmF0ZWAgbm93CiAgcmV0dXJucyBgNDAzIHsgImVycm9yIjogIkludml0ZSBnZW5lcmF0aW9uIGlzIGN1cnJlbnRseSBkaXNhYmxlZCIgfWAgd2hlbiB0aGUKICBmbGFnIGlzIG9mZiwgc28gaW52aXRlIGlzc3VhbmNlIGNhbiBiZSBmcm96ZW4gZHVyaW5nIGEgV2F2ZS4KCi0tLQoKIyMgVXNhZ2UKCmBgYHRzCmltcG9ydCB7IGlzRmVhdHVyZUVuYWJsZWQgfSBmcm9tICJAL2xpYi9mZWF0dXJlLWZsYWdzIjsKCmlmICghKGF3YWl0IGlzRmVhdHVyZUVuYWJsZWQoImJhdGNoX3JlY2hlY2siKSkpIHsKICByZXR1cm4gTmV4dFJlc3BvbnNlLmpzb24oeyBlcnJvcjogIkJhdGNoIHJlY2hlY2sgaXMgY3VycmVudGx5IGRpc2FibGVkIiB9LCB7IHN0YXR1czogNDAzIH0pOwp9CmBgYAoKRWRnZSBtaWRkbGV3YXJlIChubyBEQiwgbm8gYHNlcnZlci1vbmx5YCk6CgpgYGB0cwppbXBvcnQgeyBpc0ZlYXR1cmVFbmFibGVkRnJvbUVudiB9IGZyb20gIkAvbGliL2ZlYXR1cmUtZmxhZ3MiOwpgYGAKCkFkbWluIC8gZGVidWcgdmlldzoKCmBgYHRzCmltcG9ydCB7IGdldEFsbEZlYXR1cmVGbGFncywgc2V0RmVhdHVyZUZsYWcgfSBmcm9tICJAL2xpYi9mZWF0dXJlLWZsYWdzIjsKCmNvbnN0IGZsYWdzID0gYXdhaXQgZ2V0QWxsRmVhdHVyZUZsYWdzKCk7IC8vIFt7IGtleSwgZW5hYmxlZCwgc291cmNlLCByaXNreSwgZGVzY3JpcHRpb24gfV0KYXdhaXQgc2V0RmVhdHVyZUZsYWcoImJhdGNoX3JlY2hlY2siLCBmYWxzZSwgc2Vzc2lvbi51c2VyLmlkKTsgLy8gcmVxdWlyZXMgRkVBVFVSRV9GTEFHU19EQl9FTkFCTEVECmBgYAoKIyMjIEFkbWluIHBhbmVsCgpUaGUgYWRtaW4tb25seSByZWFkLW9ubHkgcGFuZWwgYXQgYC9kYXNoYm9hcmQvc2V0dGluZ3NgIGxpc3RzIGV2ZXJ5IGZsYWfigJlzIGtleSwKcmVzb2x2ZWQgdmFsdWUgYW5kIHNvdXJjZSAoYGVudmAsIGBkYmAsIGBkZWZhdWx0YCBvciBgZmFpbC1jbG9zZWRgKS4gSXQgaXMgZ2F0ZWQKYnkgdGhlIGFkbWluIFJCQUMgcm9sZTsgbm9uLWFkbWluIHVzZXJzIGFyZSByZWRpcmVjdGVkIHRvIGAvZGFzaGJvYXJkYC4gVGhlIHBhbmVsIGlzCnJlYWQtb25seSDigJQgdG8gY2hhbmdlIGEgZmxhZywgdXNlIGFuIGVudiBvdmVycmlkZSBvciB0aGUgZGF0YWJhc2Ugc291cmNlLgoKLS0tCgojIyBEYXRhYmFzZSBzb3VyY2UKCkVuYWJsZSB3aXRoIGBGRUFUVVJFX0ZMQUdTX0RCX0VOQUJMRUQ9MWAgYW5kIGFwcGx5IHRoZSBtaWdyYXRpb24KKGBwcmlzbWEvbWlncmF0aW9ucy8yMDI2MDgyOTEyMDAwMF9hZGRfZmVhdHVyZV9mbGFnX21vZGVsYCkuIFJvd3MgYXJlIGtleWVkIGJ5CnRoZSBmbGFnIG5hbWU6CgpgYGBzcWwKSU5TRVJUIElOVE8gIkZlYXR1cmVGbGFnIiAoImtleSIsICJlbmFibGVkIiwgInVwZGF0ZWRBdCIpClZBTFVFUyAoJ2JhdGNoX3JlY2hlY2snLCBmYWxzZSwgbm93KCkpCk9OIENPTkZMSUNUICgia2V5IikgRE8gVVBEQVRFIFNFVCAiZW5hYmxlZCIgPSBleGNsdWRlZC4iZW5hYmxlZCIsICJ1cGRhdGVkQXQiID0gbm93KCk7CmBgYAoKV2hlbiBgRkVBVFVSRV9GTEFHU19EQl9FTkFCTEVEYCBpcyB1bnNldCwgdGhlIHRhYmxlIGlzIG5ldmVyIHF1ZXJpZWQuCg==
+# Feature flags
+
+Ɛ Back to [README](../README.md) · See also [Environment variables](./ENVIRONMENT.md)
+
+`src/lib/feature-flags.ts` is a small flags helper with two sources (env and an
+optional database table) plus a built-in default per flag. It exists so shipping-freeze windows, new webhooks, i18n, and other risky changes can be
+gated without a deploy — and turned **off** fast during a Wave.
+
+Out of scope: LaunchDarkly / a hosted flag service. An in-app admin UI is
+optional; `setFeatureFlag()` and `getAllFeatureFlags()` are provided for one.
+An admin-only read-only panel lives at `/dashboard/settings` and lists each
+flag's key, resolved value and source.
+
+---
+
+## Resolution order
+
+For every flag, the first source that produces a value wins:
+
+1. **Env override** — `FEATURE_FLAG_<KEY>` (e.g. `FEATURE_FLAG_BATCH_RECHECK=off`).
+   Accepted truthy values: `1`, `true`, `on`, `yes`, `enabled`; falsy: `0`,
+   `false`, `off`, `no`, `disabled` (case-insensitive). An unrecognised value is
+   ignored and resolution falls through.
+2. **Database row** — a `FeatureFlag` row, **only** when `FEATURE_FLAGS_DB_ENABLED`
+   is truthy. Reads are cached in-process for `FEATURE_FLAGS_CACHE_TTL_MS`
+   (default 30s); `clearFeatureFlagCache()` is called automatically after
+   `setFeatureFlag()`.
+3. **Built-in default** — the `default` in `FEATURE_FLAGS`.
+
+### Fail closed
+
+Flags marked `risky` gate a mutating or destructive path. If the DB source is
+**enabled but unreadable** (connection error, table missing, …) a risky flag
+resolves to `false` — never to its default. A DB outage therefore *closes*
+risky writes rather than leaving them open. Non-risky flags fall back to their
+default in the same situation. An env override always wins, even when the DB is
+down.
+
+---
+
+## Freeze windows
+
+A **freeze window** is a period (typically during a Wave) when risky, mutating
+paths are turned off so contributors can't accidentally ship or re-queue work.
+Freeze windows are implemented entirely with the flags below — there is no
+separate freeze subsystem. To open a freeze, flip the relevant flags off (env
+override or DB row); to close it, flip them back on.
+
+| Flag | Freeze effect when off |
+|---|---|
+| `batch_recheck` | `POST /api/contributors` returns `403` — no per-contributor Horizon fan-out |
+| `invite_generation` | `POST /api/invites/generate` returns `403` — invite issuance frozen |
+| `dlq_retry` | `POST /api/contributors/queue/dlq/[jobId]/retry` returns `403` — failed jobs stay parked |
+| `maintenance_mode` | Composes with the `MAINTENANCE` env var to take the app read-only |
+
+Because these flags are `risky`, a DB outage during a freeze keeps them **off**
+(fail closed) — see [Fail closed](#fail-closed) above. The env vars that drive
+freeze windows (`FEATURE_FLAG_*`, `FEATURE_FLAGS_DB_ENABLED`,
+`FEATURE_FLAGS_CACHE_TTL_MS`, `MAINTENANCE`) are documented in
+[ENVIRONMENT.md](./ENVIRONMENT.md#feature-flags-and-freeze-windows).
+
+---
+
+## The flags
+
+| Key | Default | Risky | Gates | Documented at |
+|---|---|---|---|---|
+| `batch_recheck` | `true` | ✅ | `POST /api/contributors` — full batch recheck (one Horizon call per contributor) | `src/app/api/contributors/route.ts` |
+| `invite_generation` | `true` | ✅ | `POST /api/invites/generate` — bulk invite code creation | `src/app/api/invites/generate/route.ts` |
+| `dlq_retry` | `true` | ✅ | `POST /api/contributors/queue/dlq/[jobId]/retry` — re-queue a failed job | `src/app/api/contributors/queue/dlq/[jobId]/retry/route.ts` |
+| `maintenance_mode` | `false` | ✅ | Composes with the `MAINTENANCE` env var (see [DEPLOYMENT.md](./DEPLOYMENT.md#maintenance-mode)) | `src/lib/maintenance.ts` |
+| `otel_traces` | `false` | — | Opt-in tracing; composes with `OTEL_TRACES_ENABLED` (see [ENVIRONMENT.md](./ENVIRONMENT.md#opentelemetry-tracing-issue-203)) | `src/lib/tracing.ts` |
+| `freeze_window` | `true` | ✅ | Enforces wave freeze-window blocking on mutating APIs. When OFF, freeze-window helpers never block requests regardless of `FREEZE_WINDOW_*` env vars. | `src/lib/freeze-window.ts` |
+
+### Two existing risky features are now gated (issue #201)
+
+- **Batch recheck** (`batch_recheck`). Previously any maintainer `POST` to
+  `/api/contributors` fanned out a Horizon call per contributor with no kill
+  switch. Now it returns `403 { "error": "Batch recheck is currently disabled" }`
+  when the flag is off.
+- **Invite generation** (`invite_generation`). `/api/invites/generate` now
+  returns `403 { "error": "Invite generation is currently disabled" }` when the
+  flag is off, so invite issuance can be frozen during a Wave.
+
+---
+
+## Usage
+
+```ts
+import { isFeatureEnabled } from "@/lib/feature-flags";
+
+if (!(await isFeatureEnabled("batch_recheck"))) {
+  return NextResponse.json({ error: "Batch recheck is currently disabled" }, { status: 403 });
+}
+```
+
+Edge middleware (no DB, no `server-only`):
+
+```ts
+import { isFeatureEnabledFromEnv } from "@/lib/feature-flags";
+```
+
+Admin / debug view:
+
+```ts
+import { getAllFeatureFlags, setFeatureFlag } from "@/lib/feature-flags";
+
+const flags = await getAllFeatureFlags(); // [{ key, enabled, source, risky, description }]
+await setFeatureFlag("batch_recheck", false, session.user.id); // requires FEATURE_FLAGS_DB_ENABLED
+```
+
+### Admin panel
+
+The admin-only read-only panel at `/dashboard/settings` lists every flag’s key,
+resolved value and source (`env`, `db`, `default` or `fail-closed`). It is gated
+by the admin RBAC role; non-admin users are redirected to `/dashboard`. The panel is
+read-only — to change a flag, use an env override or the database source.
+
+---
+
+## Database source
+
+Enable with `FEATURE_FLAGS_DB_ENABLED=1` and apply the migration
+(`prisma/migrations/20260829120000_add_feature_flag_model`). Rows are keyed by
+the flag name:
+
+```sql
+INSERT INTO "FeatureFlag" ("key", "enabled", "updatedAt")
+VALUES ('batch_recheck', false, now())
+ON CONFLICT ("key") DO UPDATE SET "enabled" = excluded."enabled", "updatedAt" = now();
+```
+
+When `FEATURE_FLAGS_DB_ENABLED` is unset, the table is never queried.
+
+---
+
+## API: GET /api/settings/feature-flags
+
+Returns the resolved feature flags for the dashboard settings page.
+
+- **Authentication**: Requires an authenticated maintainer session. Returns `401 Unauthorized` if unauthenticated and `403 Forbidden` if not a maintainer.
+- **Response**:
+```json
+{
+  "flags": [
+    {
+      "key": "batch_recheck",
+      "enabled": true,
+      "value": true,
+      "source": "Built-in default",
+      "description": "Allow maintainers to enqueue a full batch recheck of every contributor."
+    }
+  ]
+}
+```
+- **Semantics**:
+  - Environment overrides win over database rows.
+  - Returns `401` for unauthenticated requests.
+  - Secret flags are never exposed to non-maintainers.
+  - DB outages fail closed for risky flags.

@@ -27,8 +27,10 @@ interface AuditLogResponse {
 
 interface FeatureFlagEntry {
   key: string;
-  value: boolean;
+  enabled: boolean;
+  value?: boolean;
   source: string;
+  description?: string;
 }
 
 interface FeatureFlagsResponse {
@@ -239,8 +241,8 @@ export default function MaintainerSettingsPage() {
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-xs">{flag.key}</span>
-                    <Badge variant={flag.value ? "default" : "secondary"}>
-                      {flag.value ? "enabled" : "disabled"}
+                    <Badge variant={(flag.enabled ?? flag.value) ? "default" : "secondary"}>
+                      {(flag.enabled ?? flag.value) ? "enabled" : "disabled"}
                     </Badge>
                   </div>
                   <span className="text-muted-foreground">{flag.source}</span>
