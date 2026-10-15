@@ -393,13 +393,14 @@ End-to-end/browser coverage (e.g. Playwright) for the event timeline panel and a
 
 ---
 
-### Transactional outbox for Soroban write-through (#199)
+### Unified Transactional Outbox for Soroban write-through (#199, #488)
 
-To ensure reliable write-through to Soroban without losing registrations during chain or RPC outages:
+To ensure reliable write-through to Soroban without losing registrations during chain or RPC outages, while supporting fast, hermetic unit tests:
 
-1. **Transactional Outbox (`SorobanOutbox`):** During registration (`POST /api/register`), a `SorobanOutbox` record (`status: PENDING`, `action: "register"`) is inserted into PostgreSQL inside the same transaction (`enqueueSorobanOutbox()`) as `prisma.registration.upsert()`.
-2. **Outbox Worker (`processSorobanOutbox()`):** A background worker (`src/lib/soroban-outbox-worker.ts`) periodically fetches pending outbox items and invokes `mirrorRegistrationToSoroban()`.
-3. **At-Least-Once Delivery & Audit Trail:** On success, outbox records transition to `COMPLETED`. On failures, outbox records retry with exponential backoff up to `maxAttempts` (default 5). If `maxAttempts` is exhausted, the status is set to `FAILED` and an audit log (`soroban_outbox_exhausted`) is recorded.
+1. **Unified Outbox Abstraction (`src/lib/soroban-outbox.ts`):** Unifies production transactional writes with an in-memory adapter sink (`setSorobanOutboxSink`) for unit tests. In production runtime, `enqueueSorobanOutbox()` creates persistent `SorobanOutbox` rows in PostgreSQL (scoped by `maintainerOrgId`). In tests, the registered sink handles delivery directly in memory without database dependencies.
+2. **Transactional Enqueue:** During registration write paths, `enqueueSorobanOutbox()` stages the mirror payload with `status: PENDING`. Duplicate exports have been consolidated under `src/lib/soroban-outbox.ts`.
+3. **Outbox Worker (`processSorobanOutbox()`):** Background workers (`scripts/worker.mjs` / `src/lib/soroban-outbox-worker.ts`) periodically fetch pending outbox rows and invoke `mirrorRegistrationToSoroban()`.
+4. **At-Least-Once Delivery & Audit Trail:** On success, outbox records transition to `COMPLETED`. On failures, records retry with exponential backoff up to `maxAttempts` (default 5). If `maxAttempts` is exhausted, status transitions to `FAILED` and an audit event (`soroban_outbox_exhausted`) is logged.
 
 ---
 

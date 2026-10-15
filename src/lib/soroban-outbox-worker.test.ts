@@ -5,6 +5,7 @@ vi.mock("@/lib/prisma", () => ({
     sorobanOutbox: {
       findMany: vi.fn(),
       update: vi.fn(),
+      create: vi.fn(),
     },
   },
 }));
@@ -21,10 +22,24 @@ import { prisma } from "@/lib/prisma";
 import { mirrorRegistrationToSoroban } from "@/lib/soroban-register";
 import { recordAuditLog } from "@/lib/audit";
 import { processSorobanOutbox } from "./soroban-outbox-worker";
+import {
+  enqueueSorobanOutbox,
+  setSorobanOutboxSink,
+  clearSorobanOutbox,
+  getSorobanOutboxEntry,
+  listSorobanOutbox,
+} from "./soroban-outbox";
 
 describe("Soroban Outbox Worker (Issue #199)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setSorobanOutboxSink(null);
+    clearSorobanOutbox();
+  });
+
+  afterEach(() => {
+    setSorobanOutboxSink(null);
+    clearSorobanOutbox();
   });
 
   it("processes pending outbox records and marks them completed on success", async () => {
@@ -98,3 +113,79 @@ describe("Soroban Outbox Worker (Issue #199)", () => {
     );
   });
 });
+
+describe("Unified Outbox Adapter (Issue #488)", () => {
+  it("routes production enqueue through Prisma create", async () => {
+    vi.mocked(prisma.sorobanOutbox.create).mockResolvedValueOnce({
+      id: "outbox-test-1",
+      maintainerOrgId: "org-1",
+      action: "register",
+      payload: { stellarAddress: "G1", githubUsername: "u1", registrationId: "r1" },
+      status: "PENDING",
+      attempts: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const result = await enqueueSorobanOutbox(
+      {
+        stellarAddress: "G1",
+        githubUsername: "u1",
+        registrationId: "r1",
+      },
+      {
+        maintainerOrgId: "org-1",
+        action: "register",
+      }
+    );
+
+    expect(prisma.sorobanOutbox.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        maintainerOrgId: "org-1",
+        action: "register",
+        status: "PENDING",
+      }),
+    });
+    expect(result.id).toBe("outbox-test-1");
+  });
+
+  it("runs in-memory via test sink when setSorobanOutboxSink is configured", async () => {
+    const sinkMock = vi.fn().mockResolvedValue(undefined);
+    setSorobanOutboxSink(sinkMock);
+
+    const payload = { stellarAddress: "G2", githubUsername: "u2", registrationId: "r2" };
+    const entry = await enqueueSorobanOutbox(payload, { idempotencyKey: "idem-1" });
+
+    expect(sinkMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "idem-1",
+        payload,
+        status: "PENDING",
+      })
+    );
+    expect(entry.status).toBe("COMPLETED");
+    expect(getSorobanOutboxEntry("idem-1")?.status).toBe("COMPLETED");
+  });
+
+  it("marks rows failed and increments attempts when sink callback throws", async () => {
+    const sinkError = new Error("Sink delivery failure");
+    setSorobanOutboxSink(vi.fn().mockRejectedValue(sinkError));
+
+    await expect(
+      enqueueSorobanOutbox({ test: 123 }, { idempotencyKey: "fail-1" })
+    ).rejects.toThrow("Sink delivery failure");
+
+    const entry = getSorobanOutboxEntry("fail-1");
+    expect(entry).toBeDefined();
+    expect(entry?.status).toBe("FAILED");
+    expect(entry?.attempts).toBe(1);
+    expect(entry?.lastError).toBe("Sink delivery failure");
+  });
+
+  it("clears in-memory outbox state without leaving stale Map entries across tests", () => {
+    setSorobanOutboxSink(null);
+    clearSorobanOutbox();
+    expect(listSorobanOutbox()).toHaveLength(0);
+  });
+});
+

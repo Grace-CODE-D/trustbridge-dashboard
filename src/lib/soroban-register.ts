@@ -159,27 +159,4 @@ export async function mirrorRegistrationToSoroban(
   }
 }
 
-/**
- * Enqueue a registration write-through task into the Soroban outbox table.
- * Designed to be executed inside a Prisma $transaction alongside registration creation.
- *
- * @param db - Prisma transaction client (passed from a $transaction context)
- * @param action - Action type (e.g., 'register')
- * @param payload - Payload containing stellarAddress, githubUsername, registrationId
- * @param maintainerOrgId - Organization ID for the maintainer context
- */
-export async function enqueueSorobanOutbox(
-  db: Prisma.TransactionClient,
-  action: string,
-  payload: { stellarAddress: string; githubUsername: string; registrationId: string },
-  maintainerOrgId = "default"
-) {
-  return db.sorobanOutbox.create({
-    data: {
-      maintainerOrgId,
-      action,
-      payload,
-      status: "PENDING",
-    },
-  });
-}
+export { enqueueSorobanOutbox } from "./soroban-outbox";
