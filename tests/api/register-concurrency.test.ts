@@ -56,6 +56,10 @@ vi.mock("@/lib/prisma", () => ({
       findFirst: vi.fn(),
       upsert: vi.fn(),
     },
+    registrationConflict: {
+      create: vi.fn().mockResolvedValue({ id: "conflict-mock-id" }),
+      findMany: vi.fn().mockResolvedValue([]),
+    },
   },
 }));
 

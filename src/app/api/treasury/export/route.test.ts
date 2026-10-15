@@ -371,5 +371,27 @@ describe("POST /api/treasury/export", () => {
       const json = await res.json();
       expect(json.error).toContain("Unsupported");
     });
+
+    it("returns 400 when page size is zero or negative", async () => {
+      const res = await POST(makePostRequest({ limit: 0 }));
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.error).toContain("Limit must be between");
+    });
+
+    it("returns 400 when page size exceeds max limit", async () => {
+      const res = await POST(makePostRequest({ limit: 1000 }));
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.error).toContain("Limit cannot exceed");
+    });
+
+    it("returns 400 when offset is negative", async () => {
+      const res = await POST(makePostRequest({ offset: -5 }));
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.error).toContain("Offset must be greater than or equal to 0");
+    });
   });
 });
+

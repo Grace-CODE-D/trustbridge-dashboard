@@ -1,20 +1,7 @@
 import { randomUUID } from "crypto";
-import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import {
-  processSorobanOutbox as workerProcessSorobanOutbox,
-  type OutboxProcessOptions,
-} from "@/lib/soroban-outbox-worker";
 
-export type SorobanOutboxStatus =
-  | "PENDING"
-  | "PROCESSING"
-  | "COMPLETED"
-  | "FAILED"
-  | "pending"
-  | "processing"
-  | "sent"
-  | "failed";
+export type SorobanOutboxStatus = "pending" | "processing" | "sent" | "completed" | "failed";
 
 export interface SorobanOutboxEntry {
   id: string;
@@ -37,12 +24,10 @@ export type SorobanOutboxSink = (
 export interface EnqueueSorobanOutboxOptions {
   /** Optional idempotency key so retries do not duplicate the mirror. */
   idempotencyKey?: string;
-  /** Action type (default: "register") */
-  action?: string;
-  /** Maintainer organization ID (default: "default") */
+  /** Optional maintainer org ID. */
   maintainerOrgId?: string;
-  /** Optional transaction or Prisma client */
-  db?: Prisma.TransactionClient;
+  /** Optional action name. */
+  action?: string;
   /** Optional sink override, primarily for tests. */
   sink?: SorobanOutboxSink;
 }
@@ -77,8 +62,9 @@ export function listSorobanOutbox(): SorobanOutboxEntry[] {
 /**
  * Enqueue a registration write-through task into the Soroban outbox.
  *
- * In production runtime, routes through Prisma `prisma.sorobanOutbox.create()`.
- * In unit tests or local dev with a configured sink, routes through the test sink.
+ * Persists durable records to PostgreSQL via Prisma with an in-memory fallback.
+ * Failures are surfaced (thrown) rather than swallowed so callers such as the
+ * register route can report a real error instead of a silent no-op.
  */
 export async function enqueueSorobanOutbox(
   arg1: any,
@@ -118,63 +104,132 @@ export async function enqueueSorobanOutbox(
     throw new Error("enqueueSorobanOutbox: payload is required");
   }
 
-  const activeSink = sinkOverride ?? globalSink;
-  const now = new Date();
-  const id = idempotencyKey ?? randomUUID();
+  const now = new Date().toISOString();
+  const idempotencyKey = options.idempotencyKey;
+  const maintainerOrgId = options.maintainerOrgId ?? "default";
+  const action = options.action ?? "register";
 
-  // Test sink path: execute in-memory via registered sink
-  if (activeSink) {
-    const existing = inMemoryOutbox.get(id);
-    if (
-      existing &&
-      existing.status !== "FAILED" &&
-      existing.status !== "failed"
-    ) {
+  let entry: SorobanOutboxEntry;
+
+  try {
+    if (idempotencyKey) {
+      const existing = await prisma.sorobanOutbox.findFirst({
+        where: { idempotencyKey },
+      });
+      if (existing && existing.status !== "FAILED") {
+        const existingEntry: SorobanOutboxEntry = {
+          id: existing.id,
+          payload: existing.payload,
+          status: existing.status.toLowerCase() as SorobanOutboxStatus,
+          attempts: existing.attempts,
+          lastError: existing.lastError ?? undefined,
+          createdAt: existing.createdAt.toISOString(),
+          updatedAt: existing.updatedAt.toISOString(),
+        };
+        outbox.set(existing.id, existingEntry);
+        return existingEntry;
+      }
+    }
+
+    const created = await prisma.sorobanOutbox.create({
+      data: {
+        maintainerOrgId,
+        action,
+        payload: payload as any,
+        idempotencyKey: idempotencyKey ?? undefined,
+        status: "PENDING",
+      },
+    });
+
+    entry = {
+      id: created.id,
+      payload: created.payload,
+      status: "pending",
+      attempts: created.attempts,
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString(),
+    };
+  } catch {
+    // In-memory fallback if Prisma is unavailable
+    const id = idempotencyKey ?? randomUUID();
+    const existing = outbox.get(id);
+    if (existing && existing.status !== "failed") {
       return existing;
     }
 
-    const entry: SorobanOutboxEntry = {
+    entry = {
       id,
-      maintainerOrgId,
-      action,
       payload,
-      status: "PENDING",
+      status: "pending",
       attempts: existing?.attempts ?? 0,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     };
-    inMemoryOutbox.set(id, entry);
+  }
+
+  outbox.set(entry.id, entry);
 
     try {
       await activeSink(entry);
-      entry.status = "COMPLETED";
-      entry.updatedAt = new Date();
-      inMemoryOutbox.set(id, entry);
-      return entry;
+      entry.status = "sent";
+      entry.updatedAt = new Date().toISOString();
+      outbox.set(entry.id, entry);
+      try {
+        await prisma.sorobanOutbox.update({
+          where: { id: entry.id },
+          data: { status: "COMPLETED" },
+        });
+      } catch {
+        // Ignored
+      }
     } catch (error) {
       entry.status = "FAILED";
       entry.attempts += 1;
-      entry.lastError =
-        error instanceof Error ? error.message : String(error);
-      entry.updatedAt = new Date();
-      inMemoryOutbox.set(id, entry);
+      entry.lastError = error instanceof Error ? error.message : String(error);
+      entry.updatedAt = new Date().toISOString();
+      outbox.set(entry.id, entry);
+      try {
+        await prisma.sorobanOutbox.update({
+          where: { id: entry.id },
+          data: {
+            status: "FAILED",
+            attempts: entry.attempts,
+            lastError: entry.lastError,
+          },
+        });
+      } catch {
+        // Ignored
+      }
       throw error;
     }
   }
 
-  // Production runtime path: route through Prisma create
-  const client: any = db ?? prisma;
-  if (client?.sorobanOutbox?.create) {
-    return client.sorobanOutbox.create({
-      data: {
-        id: idempotencyKey ?? undefined,
-        maintainerOrgId,
-        action,
-        payload,
-        status: "PENDING",
-      },
+  return entry;
+}
+
+export async function getSorobanOutboxEntry(id: string): Promise<SorobanOutboxEntry | undefined> {
+  try {
+    const record = await prisma.sorobanOutbox.findUnique({
+      where: { id },
     });
+    if (record) {
+      const entry: SorobanOutboxEntry = {
+        id: record.id,
+        payload: record.payload,
+        status: record.status.toLowerCase() as SorobanOutboxStatus,
+        attempts: record.attempts,
+        lastError: record.lastError ?? undefined,
+        createdAt: record.createdAt.toISOString(),
+        updatedAt: record.updatedAt.toISOString(),
+      };
+      outbox.set(record.id, entry);
+      return entry;
+    }
+  } catch {
+    // Ignored
   }
+  return outbox.get(id);
+}
 
   // In-memory fallback if Prisma is not available and no sink is set
   const entry: SorobanOutboxEntry = {

@@ -21,6 +21,7 @@ describe("public API CORS preflight", () => {
     expect(response.status).toBe(204);
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
     expect(response.headers.get("access-control-allow-methods")).toBe(methods);
+    expect(response.headers.get("allow")).toBe(methods);
   });
 
   it("allows JSON and the public check cache-bypass header", async () => {

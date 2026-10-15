@@ -74,10 +74,4 @@ export async function GET(request: NextRequest) {
 
 export function OPTIONS() {
   return publicOptionsResponse("GET, OPTIONS");
-  return NextResponse.json(stats, {
-    headers: {
-      ...buildStatsCacheHeaders(ttlMs),
-      ...rateLimitHeaders,
-    },
-  });
 }

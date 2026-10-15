@@ -59,6 +59,23 @@ export interface CheckAddressPayload {
 
 export type OnboardingChecklistState = Record<string, boolean>;
 
+/**
+ * Safely parse a checklistCompleted JSON column into a typed OnboardingChecklistState.
+ * Prevents unchecked casts and ensures null/undefined/non-object values safely default to {}.
+ */
+export function parseChecklistState(value: unknown): OnboardingChecklistState {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const result: OnboardingChecklistState = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (typeof v === "boolean") {
+        result[k] = v;
+      }
+    }
+    return result;
+  }
+  return {};
+}
+
 export interface ContributorRow {
   id: string;
   githubUsername: string;
@@ -203,3 +220,15 @@ export interface ProfilePrivacySettings {
   profilePublic: boolean;
   showStellarAddress: boolean;
 }
+
+export interface SorobanEventCursorRecord {
+  id: string;
+  maintainerOrgId: string;
+  eventType: string;
+  cursor: string;
+  lastPagingToken: string | null;
+  lastSyncedAt: Date | string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const signature = request.headers.get("X-Hub-Signature-256") || undefined;
     const secret = process.env.GITHUB_WEBHOOK_SECRET?.trim();
     if (secret && !verifyWebhookSignature(payload, signature)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const event = JSON.parse(body) as GitHubMembershipEvent;
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         status: result.status,
         event: result.event,
       },
-      { status: 202 },
+      { status: 200 },
     );
   } catch (error) {
     const message =

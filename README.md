@@ -256,7 +256,9 @@ The dashboard listens for GitHub organization membership changes via webhook at 
    - Secret: The same secret from step 1
    - Events: Select "Organization" and check "Member"
 
-The webhook endpoint returns HTTP 202 (Accepted) for all webhook deliveries to prevent GitHub retry storms. Processing is logged and failures are captured in the audit log.
+The webhook endpoint returns HTTP 202 (Accepted) after signature verification, including processing failures, to prevent GitHub retry storms. Invalid or missing signatures return HTTP 401; an unset or blank `GITHUB_WEBHOOK_SECRET` returns HTTP 503. Processing failures are captured in Sentry, and recognized membership changes for registered users produce audit entries.
+
+Admins can replay a membership payload with `POST /api/webhooks/github-org-membership/replay`. Replay requires an admin session (HTTP 403 otherwise). When `GITHUB_WEBHOOK_SECRET` is configured, include a valid `X-Hub-Signature-256` HMAC for the exact request body; invalid or missing signatures return HTTP 401. When the secret is unset or blank, this admin-only replay endpoint skips signature verification to allow manual recovery. Successful processing returns HTTP 200 with `status` and `event`; malformed JSON returns HTTP 400. Preserve `X-GitHub-Delivery` when replaying to retain the original delivery ID in the membership audit entry.
 
 ### Security
 

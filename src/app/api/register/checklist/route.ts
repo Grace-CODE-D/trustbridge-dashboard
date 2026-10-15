@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { assertSameOrigin } from "@/lib/csrf";
 import { prisma } from "@/lib/prisma";
 import { captureException } from "@/lib/sentry";
-import type { OnboardingChecklistState } from "@/types";
+import { type OnboardingChecklistState, parseChecklistState } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -110,10 +110,8 @@ export async function PATCH(request: NextRequest) {
       }),
     ]);
 
-    const existingUserChecklist =
-      (user?.checklistCompleted as OnboardingChecklistState | null) ?? {};
-    const existingRegChecklist =
-      (registration?.checklistCompleted as OnboardingChecklistState | null) ?? {};
+    const existingUserChecklist = parseChecklistState(user?.checklistCompleted);
+    const existingRegChecklist = parseChecklistState(registration?.checklistCompleted);
 
     const mergedChecklist: OnboardingChecklistState = {
       ...existingUserChecklist,

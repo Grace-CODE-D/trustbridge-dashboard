@@ -343,6 +343,12 @@ Soroban RPC endpoint used to fetch contract events for the timeline panel. Defau
 
 **Keep this on the same network as `NEXT_PUBLIC_HORIZON_URL` above.** The default here is testnet while the default Horizon URL is mainnet — see the network consistency note above and [Architecture — network hardening](./ARCHITECTURE.md#network-hardening) for how the mismatch is surfaced.
 
+### `SOROBAN_OUTBOX_INTERVAL_MS`
+
+Polling interval in milliseconds for the Soroban outbox worker loop in `scripts/worker.mjs`. Defaults to `15000` (15 seconds) when unset.
+
+- **Optional.** Controls how frequently the background worker checks for pending outbox items to mirror to Soroban.
+
 ### `CRON_SECRET`
 
 Bearer token that authorizes a scheduler (e.g. Vercel Cron) to trigger `POST /api/contract-sync` and `POST /api/cron/export` without a maintainer session. Send as `Authorization: Bearer $CRON_SECRET`.

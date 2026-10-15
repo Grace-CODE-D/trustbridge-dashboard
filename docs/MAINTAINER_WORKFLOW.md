@@ -90,3 +90,32 @@ To prevent roster changes or rechecks from shuffling readiness states immediatel
 - Banning requires a non-empty reason and applies case-insensitively across current and future account re-registrations.
 - Unban via `POST /api/maintainer/ban` (`action: "unban"`, `githubUsername: "<username>"`).
 - All actions record audit trail events (`contributor.banned`, `contributor.unbanned`).
+
+---
+
+## 5. Soroban Event Cursor Reset
+
+When operators need to re-index or re-sync Soroban events from a specific ledger or genesis:
+
+1. **Inspect existing cursors**:
+   ```sql
+   SELECT "maintainerOrgId", "eventType", "cursor", "lastPagingToken", "lastSyncedAt"
+   FROM "SorobanEventCursor"
+   WHERE "maintainerOrgId" = '<maintainer_org>';
+   ```
+
+2. **Reset to a previous ledger/token**:
+   ```sql
+   UPDATE "SorobanEventCursor"
+   SET "cursor" = '<target_ledger_or_token>',
+       "lastPagingToken" = NULL,
+       "lastSyncedAt" = NOW()
+   WHERE "maintainerOrgId" = '<maintainer_org>' AND "eventType" = 'contract';
+   ```
+
+3. **Full re-sync from scratch**:
+   Delete the cursor record to let the backfill worker start from genesis or the contract inception ledger:
+   ```sql
+   DELETE FROM "SorobanEventCursor"
+   WHERE "maintainerOrgId" = '<maintainer_org>' AND "eventType" = 'contract';
+   ```

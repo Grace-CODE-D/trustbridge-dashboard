@@ -25,10 +25,13 @@ model User {
   invites         Invite[]
   apiKeys         ApiKey[]
   notifications   Notification[]
+  attemptedConflicts RegistrationConflict[] @relation("AttemptedConflicts")
+  existingConflicts  RegistrationConflict[] @relation("ExistingConflicts")
   banned          Boolean       @default(false)
   bannedAt        DateTime?
   banReason       String?
   bannedById      String?
+  checklistCompleted Json?      @default("{}")
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -85,6 +88,7 @@ model Registration {
   notes               String?
   tags                String[]      @default([])
   disputeProof        DisputeProof?
+  checklistCompleted  Json?         @default("{}")
 
   @@index([trustlineReady])
   @@index([lastCheckedAt])
@@ -275,5 +279,58 @@ model Notification {
   @@index([userId])
   @@index([maintainerOrgId])
   @@index([read])
+  @@index([createdAt])
+}
+
+model SorobanEventCursor {
+  id              String   @id @default(cuid())
+  maintainerOrgId String   @default("default")
+  eventType       String   @default("contract")
+  cursor          String
+  lastPagingToken String?
+  lastSyncedAt    DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([maintainerOrgId, eventType])
+  @@index([maintainerOrgId])
+}
+
+model SorobanOutbox {
+  id              String   @id @default(cuid())
+  maintainerOrgId String   @default("default")
+  action          String   @default("register")
+  payload         Json
+  status          String   @default("PENDING")
+  attempts        Int      @default(0)
+  maxAttempts     Int      @default(5)
+  lastError       String?
+  nextAttemptAt   DateTime @default(now())
+  idempotencyKey  String?  @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([status, nextAttemptAt])
+  @@index([maintainerOrgId])
+}
+
+model RegistrationConflict {
+  id               String   @id @default(cuid())
+  maintainerOrgId  String   @default("default")
+  attemptedAddress String
+  attemptedUserId  String
+  attemptedUser    User     @relation("AttemptedConflicts", fields: [attemptedUserId], references: [id], onDelete: Cascade)
+  existingUserId   String
+  existingUser     User     @relation("ExistingConflicts", fields: [existingUserId], references: [id], onDelete: Cascade)
+  resolved         Boolean  @default(false)
+  resolvedAt       DateTime?
+  resolvedById     String?
+  createdAt        DateTime @default(now())
+
+  @@index([attemptedAddress])
+  @@index([attemptedUserId])
+  @@index([existingUserId])
+  @@index([maintainerOrgId])
   @@index([createdAt])
 }

@@ -294,4 +294,25 @@ describe("POST /api/register — error codes", () => {
     // The cause stays in Sentry, not in the response.
     expect(JSON.stringify(body)).not.toMatch(/connection reset/);
   });
+
+  it("persists a RegistrationConflict row when an address is already registered to another user", async () => {
+    signedIn("user-attempting");
+    vi.mocked(prisma.registration.findFirst).mockResolvedValue({
+      id: "reg-existing",
+      userId: "user-existing",
+      stellarAddress: validAddress,
+    } as never);
+    vi.mocked(prisma.registration.findUnique).mockResolvedValue(null as never);
+
+    const res = await POST(post({ stellarAddress: validAddress }));
+    expect(res.status).toBe(409);
+    expect(prisma.registrationConflict.create).toHaveBeenCalledWith({
+      data: {
+        attemptedAddress: validAddress,
+        attemptedUserId: "user-attempting",
+        existingUserId: "user-existing",
+      },
+    });
+  });
 });
+

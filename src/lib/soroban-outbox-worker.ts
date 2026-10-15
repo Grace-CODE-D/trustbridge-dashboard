@@ -7,17 +7,46 @@ import { recordAuditLog } from "@/lib/audit";
 export interface OutboxProcessOptions {
   batchSize?: number;
   maxAttempts?: number;
+  maintainerOrgId?: string;
+}
+
+export interface SorobanOutboxMetrics {
+  total: number;
+  pending: number;
+  processing: number;
+  completed: number;
+  failed: number;
+}
+
+export async function getSorobanOutboxMetrics(
+  maintainerOrgId?: string
+): Promise<SorobanOutboxMetrics> {
+  const whereScope = maintainerOrgId ? { maintainerOrgId } : {};
+  const [total, pending, processing, completed, failed] = await Promise.all([
+    prisma.sorobanOutbox.count({ where: whereScope }),
+    prisma.sorobanOutbox.count({ where: { ...whereScope, status: "PENDING" } }),
+    prisma.sorobanOutbox.count({ where: { ...whereScope, status: "PROCESSING" } }),
+    prisma.sorobanOutbox.count({ where: { ...whereScope, status: "COMPLETED" } }),
+    prisma.sorobanOutbox.count({ where: { ...whereScope, status: "FAILED" } }),
+  ]);
+
+  return { total, pending, processing, completed, failed };
 }
 
 export async function processSorobanOutbox(options: OutboxProcessOptions = {}) {
   const batchSize = options.batchSize ?? 10;
   const maxAttempts = options.maxAttempts ?? 5;
 
+  const where: any = {
+    status: "PENDING",
+    nextAttemptAt: { lte: new Date() },
+  };
+  if (options.maintainerOrgId) {
+    where.maintainerOrgId = options.maintainerOrgId;
+  }
+
   const pending = await prisma.sorobanOutbox.findMany({
-    where: {
-      status: "PENDING",
-      nextAttemptAt: { lte: new Date() },
-    },
+    where,
     take: batchSize,
     orderBy: { createdAt: "asc" },
   });

@@ -18,6 +18,10 @@ vi.mock("@/lib/prisma", () => ({
       upsert: vi.fn(),
       update: vi.fn(),
     },
+    registrationConflict: {
+      create: vi.fn().mockResolvedValue({ id: "conflict-mock-id" }),
+      findMany: vi.fn().mockResolvedValue([]),
+    },
   },
 }));
 
@@ -257,6 +261,46 @@ describe("Onboarding Checklist Persistence & GDPR Deletion", () => {
         fund_wallet: true,
         add_trustline: true,
         register_address: true,
+      });
+    });
+
+    it("defaults null checklistCompleted to empty object", async () => {
+      vi.mocked(getServerSession).mockResolvedValue({
+        user: { id: "user-1" },
+      } as any);
+
+      vi.mocked(prisma.registration.findUnique).mockResolvedValue(null);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: "user-1",
+        checklistCompleted: null,
+      } as any);
+
+      const res = await getRegister();
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.checklistCompleted).toEqual({});
+    });
+
+    it("retains checklist state for soft-deleted registrations", async () => {
+      vi.mocked(getServerSession).mockResolvedValue({
+        user: { id: "user-1" },
+      } as any);
+
+      vi.mocked(prisma.registration.findUnique).mockResolvedValue({
+        id: "reg-1",
+        userId: "user-1",
+        stellarAddress: "GDXNXL25GDM3N5LAR5FALA3VSGHFET3EOKLXRP3ITPPMR3PISTQSKSFS",
+        deletedAt: new Date(),
+        checklistCompleted: { choose_wallet: true, fund_wallet: true },
+      } as any);
+
+      const res = await getRegister();
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.registration).toBeNull();
+      expect(data.checklistCompleted).toEqual({
+        choose_wallet: true,
+        fund_wallet: true,
       });
     });
   });

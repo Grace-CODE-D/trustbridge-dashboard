@@ -13,6 +13,7 @@ import {
 } from "@/lib/registration-insights";
 import { validateRegistrationInput } from "@/lib/register-validation";
 import { computeReadiness } from "@/lib/readiness";
+import { OnboardingChecklistState, parseChecklistState } from "@/types";
 import { captureException } from "@/lib/sentry";
 import { mirrorRegistrationToSoroban } from "@/lib/soroban-register";
 import { recordInitialAddress, recordAddressChange } from "@/lib/address-history";
@@ -123,7 +124,8 @@ export async function POST(request: NextRequest) {
     const stellarAddress = body.stellarAddress!.trim();
 
     const existing = await prisma.registration.findFirst({
-      where: { stellarAddress, deletedAt: null },
+      where: { stellarAddress },
+      orderBy: { createdAt: "desc" },
     });
 
     const userRegistration = await prisma.registration.findUnique({
@@ -135,14 +137,23 @@ export async function POST(request: NextRequest) {
         : null;
 
     if (existing && existing.userId !== session.user.id) {
-      await recordRegistrationConflict({
-        attemptedAddress: stellarAddress,
-        attemptedUserId: session.user.id,
-        existingUserId: existing.userId,
-        maintainerOrgId: (session.user as any).maintainerOrgId ?? "default",
-        actorLogin: session.user.githubUsername ?? null,
-        existingRegistrationId: existing.id,
-      });
+      await Promise.all([
+        prisma.registrationConflict.create({
+          data: {
+            attemptedAddress: stellarAddress,
+            attemptedUserId: session.user.id,
+            existingUserId: existing.userId,
+          },
+        }),
+        recordAuditLog({
+          action: "registration.conflict",
+          actorId: session.user.id,
+          actorLogin: session.user.githubUsername ?? null,
+          targetId: existing.id,
+          targetLabel: stellarAddress,
+          metadata: { attemptedAddress: stellarAddress },
+        }),
+      ]);
 
       return NextResponse.json(
         {
@@ -178,10 +189,10 @@ export async function POST(request: NextRequest) {
     );
 
     // Merge existing checklist state if available
-    const existingChecklist =
-      (userRegistration?.checklistCompleted as Record<string, boolean> | null) ??
-      {};
-    const updatedChecklist = {
+    const existingChecklist = parseChecklistState(
+      userRegistration?.checklistCompleted
+    );
+    const updatedChecklist: OnboardingChecklistState = {
       ...existingChecklist,
       register_address: true,
     };
@@ -321,6 +332,35 @@ export async function POST(request: NextRequest) {
     // That is the same conflict as the pre-check, so it gets the same answer
     // rather than a generic 500 the client cannot act on.
     if (isUniqueAddressViolation(error)) {
+      const winner = await prisma.registration.findFirst({
+        where: { stellarAddress },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (winner && winner.userId !== session.user.id) {
+        await Promise.all([
+          prisma.registrationConflict
+            .create({
+              data: {
+                attemptedAddress: stellarAddress,
+                attemptedUserId: session.user.id,
+                existingUserId: winner.userId,
+              },
+            })
+            .catch((err) =>
+              console.error("Failed to record racing RegistrationConflict:", err)
+            ),
+          recordAuditLog({
+            action: "registration.conflict",
+            actorId: session.user.id,
+            actorLogin: session.user.githubUsername ?? null,
+            targetId: winner.id,
+            targetLabel: stellarAddress,
+            metadata: { attemptedAddress: stellarAddress, racing: true },
+          }),
+        ]);
+      }
+
       return NextResponse.json(
         {
           error: "This Stellar address is already registered to another user",
@@ -352,14 +392,15 @@ export async function GET() {
   });
 
   if (!registration || registration.deletedAt) {
-    let checklistCompleted: Record<string, boolean> = {};
-    if (prisma.user?.findUnique) {
+    let checklistCompleted: OnboardingChecklistState = {};
+    if (registration?.checklistCompleted) {
+      checklistCompleted = parseChecklistState(registration.checklistCompleted);
+    } else if (prisma.user?.findUnique) {
       const user = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: { checklistCompleted: true },
       });
-      checklistCompleted =
-        (user?.checklistCompleted as Record<string, boolean> | null) ?? {};
+      checklistCompleted = parseChecklistState(user?.checklistCompleted);
     }
 
     return NextResponse.json({
@@ -378,8 +419,7 @@ export async function GET() {
     }
   );
 
-  const checklistCompleted =
-    (registration.checklistCompleted as Record<string, boolean> | null) ?? {};
+  const checklistCompleted = parseChecklistState(registration.checklistCompleted);
 
   return NextResponse.json({
     registration: {

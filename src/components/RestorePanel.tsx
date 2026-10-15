@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, RotateCcw } from "lucide-react";
+import { useState } from "react";
 
 import {
   Card,
@@ -11,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatRelativeTime } from "@/lib/utils";
 
 interface DeletedRegistration {
@@ -34,7 +36,7 @@ interface RestoreResponse {
 
 /**
  * RestorePanel — lists recently soft-deleted registrations and lets maintainers
- * restore them with a single click. (#310)
+ * restore them after confirmation. (#310)
  *
  * Calls:
  *   GET  /api/registrations/deleted            — list up to 50 recent deletes
@@ -44,6 +46,8 @@ interface RestoreResponse {
  */
 export function RestorePanel() {
   const queryClient = useQueryClient();
+  const [selectedRegistration, setSelectedRegistration] =
+    useState<DeletedRegistration | null>(null);
 
   const deletedQuery = useQuery<DeletedResponse>({
     queryKey: ["registrations", "deleted"],
@@ -147,7 +151,7 @@ export function RestorePanel() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => restoreMutation.mutate(reg.id)}
+                  onClick={() => setSelectedRegistration(reg)}
                   disabled={restoreMutation.isPending}
                   aria-label={`Restore registration for ${reg.stellarAddress}`}
                 >
@@ -164,6 +168,19 @@ export function RestorePanel() {
           </ul>
         )}
       </CardContent>
+      <ConfirmDialog
+        open={selectedRegistration !== null}
+        title="Restore registration?"
+        description={`Restore ${selectedRegistration?.stellarAddress ?? "this registration"}? This makes it active again and records an audit log entry.`}
+        confirmLabel="Restore registration"
+        pending={restoreMutation.isPending}
+        onCancel={() => setSelectedRegistration(null)}
+        onConfirm={() => {
+          if (!selectedRegistration || restoreMutation.isPending) return;
+          restoreMutation.mutate(selectedRegistration.id);
+          setSelectedRegistration(null);
+        }}
+      />
     </Card>
   );
 }

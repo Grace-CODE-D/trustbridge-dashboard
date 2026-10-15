@@ -4,6 +4,8 @@ import {
   getStaleContributors,
   buildStalenessSummary,
   filterContributorsByDateRange,
+  evaluateStaleExportGuard,
+  assertFreshExport,
 } from "@/lib/stale-export";
 import type { ContributorRow } from "@/types";
 
@@ -131,5 +133,126 @@ describe("filterContributorsByDateRange", () => {
     const old = makeRow(new Date(Date.now() - 7200000).toISOString());
     const result = filterContributorsByDateRange([old], Date.now());
     expect(result).toHaveLength(0);
+  });
+});
+
+describe("evaluateStaleExportGuard", () => {
+  it("allows export when all contributors are fresh and blockWhenStale is true", () => {
+    const fresh = makeRow(new Date().toISOString());
+    const result = evaluateStaleExportGuard([fresh], { blockWhenStale: true });
+
+    expect(result.stale).toBe(false);
+    expect(result.blocked).toBe(false);
+    expect(result.allowExport).toBe(true);
+    expect(result.staleCount).toBe(0);
+  });
+
+  it("blocks export when a contributor is stale and blockWhenStale is true", () => {
+    const stale = makeRow(new Date(Date.now() - 7200000).toISOString());
+    const result = evaluateStaleExportGuard([stale], {
+      maxAgeMs: 3600000,
+      blockWhenStale: true,
+    });
+
+    expect(result.stale).toBe(true);
+    expect(result.blocked).toBe(true);
+    expect(result.allowExport).toBe(false);
+    expect(result.staleCount).toBe(1);
+    expect(result.reason).toBe("stale_contributors");
+    expect(result.error).toBeDefined();
+  });
+
+  it("allows export when a contributor is stale but blockWhenStale is false (override path)", () => {
+    const stale = makeRow(new Date(Date.now() - 7200000).toISOString());
+    const result = evaluateStaleExportGuard([stale], {
+      maxAgeMs: 3600000,
+      blockWhenStale: false,
+    });
+
+    expect(result.stale).toBe(true);
+    expect(result.blocked).toBe(false);
+    expect(result.allowExport).toBe(true);
+    expect(result.staleCount).toBe(1);
+    expect(result.warning).toContain("1 of 1 contributors (100%)");
+  });
+
+  it("falls back to row-level rules when snapshotAt is missing", () => {
+    const fresh = makeRow(new Date().toISOString());
+    const result = evaluateStaleExportGuard([fresh], {
+      snapshotAt: undefined,
+      maxAgeMs: 3600000,
+    });
+
+    expect(result.stale).toBe(false);
+    expect(result.blocked).toBe(false);
+  });
+
+  it("counts all contributors as stale when none have been checked (null lastCheckedAt)", () => {
+    const unchecked1 = makeRow(null);
+    const unchecked2 = makeRow(null);
+    const result = evaluateStaleExportGuard([unchecked1, unchecked2], {
+      maxAgeMs: 3600000,
+      blockWhenStale: true,
+    });
+
+    expect(result.stale).toBe(true);
+    expect(result.blocked).toBe(true);
+    expect(result.staleCount).toBe(2);
+    expect(result.stalePercent).toBe(100);
+  });
+
+  it("handles timezone-skewed ISO timestamps without crashing", () => {
+    const now = new Date();
+    // ISO string with explicit timezone offset
+    const timezoneSkewed = `${now.toISOString().slice(0, 19)}+05:30`;
+    const result = evaluateStaleExportGuard([], {
+      snapshotAt: timezoneSkewed,
+      maxAgeMs: 86400000,
+    });
+
+    expect(result.stale).toBe(false);
+    expect(result.blocked).toBe(false);
+  });
+
+  it("marks invalid snapshot timestamps as stale with reason", () => {
+    const result = evaluateStaleExportGuard([], {
+      snapshotAt: "not-a-valid-date",
+      blockWhenStale: true,
+    });
+
+    expect(result.stale).toBe(true);
+    expect(result.blocked).toBe(true);
+    expect(result.reason).toBe("invalid_snapshot_timestamp");
+  });
+});
+
+describe("assertFreshExport", () => {
+  it("returns null when export is fresh", () => {
+    const fresh = makeRow(new Date().toISOString());
+    const result = assertFreshExport(undefined, [fresh], { maxAgeMs: 3600000 });
+    expect(result).toBeNull();
+  });
+
+  it("returns error and reason when export is blocked", () => {
+    const stale = makeRow(new Date(Date.now() - 7200000).toISOString());
+    const result = assertFreshExport(undefined, [stale], {
+      maxAgeMs: 3600000,
+      blockWhenStale: true,
+    });
+
+    expect(result).not.toBeNull();
+    expect(result?.error).toBeDefined();
+    expect(result?.reason).toBe("stale_contributors");
+  });
+
+  it("evaluates snapshotAt directly when passed as first parameter", () => {
+    const oldSnapshot = new Date(Date.now() - 7200000).toISOString();
+    const result = assertFreshExport(oldSnapshot, [], {
+      maxAgeMs: 3600000,
+      blockWhenStale: true,
+    });
+
+    expect(result).not.toBeNull();
+    expect(result?.reason).toBe("stale_snapshot");
   });
 });

@@ -11,6 +11,24 @@ export interface StaleExportOptions {
    * When false, exports are allowed with a user confirmation.
    */
   blockWhenStale?: boolean;
+  /**
+   * Optional snapshot timestamp (ISO string).
+   * When present, this is evaluated. When missing, the guard falls back
+   * to row-level lastCheckedAt evaluation.
+   */
+  snapshotAt?: string | null;
+}
+
+export interface StaleExportGuardResult {
+  stale: boolean;
+  blocked: boolean;
+  staleCount: number;
+  totalCount: number;
+  stalePercent: number;
+  warning: string;
+  allowExport: boolean;
+  reason?: string;
+  error?: string;
 }
 
 function getDefaultMaxAgeMs(): number {
@@ -18,8 +36,8 @@ function getDefaultMaxAgeMs(): number {
   return Number.isFinite(fromEnv) && fromEnv > 0 ? fromEnv : 86400000; // 24h
 }
 
-function parseLastCheckedAt(value: string | null): Date | null {
-  if (!value) return null;
+function parseLastCheckedAt(value: unknown): Date | null {
+  if (!value || typeof value !== "string") return null;
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? null : d;
 }
@@ -120,23 +138,90 @@ export function buildStalenessSummary(
  * allowed but the staleness summary is still surfaced for confirmation.
  */
 export function evaluateStaleExportGuard(
-  contributors: ContributorRow[],
+  contributors: ContributorRow[] = [],
   options: StaleExportOptions = {}
-): {
-  stale: boolean;
-  blocked: boolean;
-  staleCount: number;
-  totalCount: number;
-  stalePercent: number;
-  warning: string;
-  allowExport: boolean;
-} {
-  const summary = buildStalenessSummary(contributors, options.maxAgeMs);
+): StaleExportGuardResult {
+  const threshold = options.maxAgeMs ?? getDefaultMaxAgeMs();
   const blockWhenStale = options.blockWhenStale ?? true;
+  const now = Date.now();
+  const hours = Math.round(threshold / 3600000);
+
+  if (options.snapshotAt !== undefined && options.snapshotAt !== null && options.snapshotAt !== "") {
+    const d = parseLastCheckedAt(options.snapshotAt);
+    if (!d) {
+      const warning = `Snapshot timestamp "${options.snapshotAt}" is invalid.`;
+      return {
+        stale: true,
+        blocked: blockWhenStale,
+        staleCount: contributors.length,
+        totalCount: contributors.length,
+        stalePercent: 100,
+        warning,
+        allowExport: !blockWhenStale,
+        reason: "invalid_snapshot_timestamp",
+        error: warning,
+      };
+    }
+
+    const age = now - d.getTime();
+    if (age > threshold) {
+      const warning = `Snapshot from ${options.snapshotAt} is older than ${hours} hour(s). Exporting stale data may cause payout failures.`;
+      return {
+        stale: true,
+        blocked: blockWhenStale,
+        staleCount: contributors.length,
+        totalCount: contributors.length,
+        stalePercent: 100,
+        warning,
+        allowExport: !blockWhenStale,
+        reason: "stale_snapshot",
+        error: warning,
+      };
+    }
+
+    return {
+      stale: false,
+      blocked: false,
+      staleCount: 0,
+      totalCount: contributors.length,
+      stalePercent: 0,
+      warning: "",
+      allowExport: true,
+    };
+  }
+
+  const summary = buildStalenessSummary(contributors, threshold);
+  const isStale = summary.stale;
+  const blocked = isStale && blockWhenStale;
 
   return {
     ...summary,
-    blocked: summary.stale && blockWhenStale,
-    allowExport: !summary.stale || !blockWhenStale,
+    blocked,
+    allowExport: !isStale || !blockWhenStale,
+    reason: isStale ? "stale_contributors" : undefined,
+    error: blocked ? summary.warning || "Export blocked due to stale contributor data" : undefined,
   };
 }
+
+/**
+ * Assertion wrapper for checking export freshness.
+ * Returns { error, reason } if stale and blocked, or null if fresh/allowed.
+ */
+export function assertFreshExport(
+  snapshotAt?: string | null,
+  contributors: ContributorRow[] = [],
+  options: StaleExportOptions = {}
+): { error: string; reason: string } | null {
+  const guard = evaluateStaleExportGuard(contributors, {
+    ...options,
+    snapshotAt,
+  });
+  if (guard.blocked) {
+    return {
+      error: guard.error ?? guard.warning ?? "Export blocked due to stale data",
+      reason: guard.reason ?? "stale_export",
+    };
+  }
+  return null;
+}
+

@@ -18,6 +18,7 @@ export function publicOptionsResponse(methods: string): Response {
     headers: {
       ...PUBLIC_CORS_HEADERS,
       "Access-Control-Allow-Methods": methods,
+      Allow: methods,
     },
   });
 }
