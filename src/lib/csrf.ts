@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
@@ -123,4 +124,73 @@ export function assertCsrf(request: NextRequest): NextResponse | null {
   }
 
   return null;
+}
+
+const CSRF_SECRET =
+  process.env.NEXTAUTH_SECRET ||
+  process.env.CSRF_SECRET ||
+  "trustbridge-csrf-default-secret-key-32";
+
+const CSRF_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+/**
+ * Issues a signed, timestamped CSRF token bound to the specified userId.
+ */
+export function generateCsrfToken(
+  userId: string,
+  ttlMs: number = CSRF_EXPIRY_MS
+): string {
+  if (!userId) {
+    throw new Error("userId is required to generate a CSRF token");
+  }
+  const timestamp = Date.now().toString();
+  const salt = crypto.randomBytes(16).toString("hex");
+  const data = `${userId}:${timestamp}:${salt}`;
+  const hmac = crypto
+    .createHmac("sha256", CSRF_SECRET)
+    .update(data)
+    .digest("hex");
+  return `${timestamp}.${salt}.${hmac}`;
+}
+
+export const issueCsrfToken = generateCsrfToken;
+
+/**
+ * Validates a signed CSRF token against the user's ID.
+ * Returns true if valid and not expired, false otherwise.
+ */
+export function validateCsrfToken(userId: string, token: string): boolean {
+  if (!userId || !token || typeof token !== "string") {
+    return false;
+  }
+  const parts = token.split(".");
+  if (parts.length !== 3) {
+    return false;
+  }
+  const [timestampStr, salt, providedHmac] = parts;
+  const timestamp = parseInt(timestampStr, 10);
+  if (Number.isNaN(timestamp)) {
+    return false;
+  }
+  const now = Date.now();
+  // Fails closed if expired or if timestamp is in the future beyond 60s
+  if (now - timestamp > CSRF_EXPIRY_MS || timestamp > now + 60_000) {
+    return false;
+  }
+  const data = `${userId}:${timestampStr}:${salt}`;
+  const expectedHmac = crypto
+    .createHmac("sha256", CSRF_SECRET)
+    .update(data)
+    .digest("hex");
+
+  try {
+    const providedBuf = Buffer.from(providedHmac, "hex");
+    const expectedBuf = Buffer.from(expectedHmac, "hex");
+    if (providedBuf.length !== expectedBuf.length) {
+      return false;
+    }
+    return crypto.timingSafeEqual(providedBuf, expectedBuf);
+  } catch {
+    return false;
+  }
 }

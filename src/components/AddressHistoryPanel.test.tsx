@@ -94,4 +94,26 @@ describe("AddressHistoryPanel", () => {
     );
     expect(screen.queryByTestId("address-history-empty")).not.toBeInTheDocument();
   });
+
+  it("attaches x-csrf-token header when csrfToken is provided", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ history: [] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderWithClient(<AddressHistoryPanel csrfToken="test-csrf-token-123" />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/address-history",
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            "x-csrf-token": "test-csrf-token-123",
+          }),
+        })
+      );
+    });
+  });
 });
+

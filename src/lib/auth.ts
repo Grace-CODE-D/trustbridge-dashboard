@@ -8,6 +8,7 @@ import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-info";
 import { decryptToken, encryptToken } from "@/lib/token-crypto";
 import { recordTokenAudit } from "@/lib/token-audit";
 import { recordAuditLog } from "@/lib/audit";
+import { generateCsrfToken } from "@/lib/csrf";
 import type { AppRole } from "@/types";
 
 async function isOrgMember(accessToken: string, org: string): Promise<boolean> {
@@ -233,6 +234,9 @@ export const authOptions: NextAuthOptions = {
         session.user.githubUsername = token.githubUsername;
         session.user.isMaintainer = token.isMaintainer ?? false;
         session.user.role = token.role as AppRole | undefined;
+        if (session.user.id) {
+          session.user.csrfToken = generateCsrfToken(session.user.id);
+        }
       }
       return session;
     },

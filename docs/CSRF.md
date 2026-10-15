@@ -32,6 +32,14 @@ Every mutating route handler under `src/app/api/` calls `assertSameOrigin` from 
 | `/api/contributors/[id]` | POST | Yes |
 | `/api/auth/[...nextauth]` | POST | No (handled by NextAuth internal CSRF) |
 
+### Sensitive read routes (CSRF token-validated)
+
+| Route | Method | Protected |
+|-------|--------|-----------|
+| `/api/address-history` | GET | Yes (requires valid CSRF token via `x-csrf-token` header or `csrfToken` query param) |
+
+Sensitive read endpoints exposing payout timeline data enforce CSRF token validation via `validateCsrfToken` in `src/lib/csrf.ts` in addition to session authentication. This prevents cross-site data exposure and unauthorized history queries.
+
 ### Read-only routes (safe methods)
 
 | Route | Method | Protected |
@@ -41,7 +49,6 @@ Every mutating route handler under `src/app/api/` calls `assertSameOrigin` from 
 | `/api/contributors` | GET | No (read-only, auth already enforced) |
 | `/api/contributors/[id]` | GET | No (read-only, auth already enforced) |
 | `/api/register` | GET | No (read-only, auth already enforced) |
-| `/api/address-history` | GET | No (read-only, auth already enforced) |
 
 ---
 

@@ -27,18 +27,30 @@ const CHANGE_TYPE_LABEL: Record<string, string> = {
   updated: "Address updated",
 };
 
-interface AddressHistoryPanelProps {
+export interface AddressHistoryPanelProps {
   className?: string;
+  csrfToken?: string;
 }
 
-export function AddressHistoryPanel({ className }: AddressHistoryPanelProps) {
+export async function fetchAddressHistory(
+  csrfToken?: string
+): Promise<AddressHistoryResponse> {
+  const headers: Record<string, string> = {};
+  if (csrfToken) {
+    headers["x-csrf-token"] = csrfToken;
+  }
+  const response = await fetch("/api/address-history", { headers });
+  if (!response.ok) throw new Error("Failed to load address history");
+  return (await response.json()) as AddressHistoryResponse;
+}
+
+export function AddressHistoryPanel({
+  className,
+  csrfToken,
+}: AddressHistoryPanelProps) {
   const historyQuery = useQuery({
-    queryKey: ["address-history"],
-    queryFn: async () => {
-      const response = await fetch("/api/address-history");
-      if (!response.ok) throw new Error("Failed to load address history");
-      return (await response.json()) as AddressHistoryResponse;
-    },
+    queryKey: ["address-history", csrfToken],
+    queryFn: () => fetchAddressHistory(csrfToken),
   });
 
   const entries = historyQuery.data?.history ?? [];

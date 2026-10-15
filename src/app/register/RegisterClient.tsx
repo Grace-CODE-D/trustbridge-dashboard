@@ -403,7 +403,7 @@ export function RegisterClient() {
       </div>
 
       <div className="mt-8">
-        <AddressHistoryPanel />
+        <AddressHistoryPanel csrfToken={session?.user?.csrfToken} />
       </div>
 
       <div className="mt-12 border-t pt-8">

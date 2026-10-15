@@ -13,6 +13,7 @@ declare module "next-auth" {
       githubUsername?: string;
       isMaintainer?: boolean;
       role?: AppRole;
+      csrfToken?: string;
     };
   }
 }
