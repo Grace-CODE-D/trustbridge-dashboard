@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireMaintainerSession } from "@/lib/api-auth";
-import { prisma } from "@/lib/prisma";
+import { listDeletedRegistrations } from "@/lib/maintainers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,42 +36,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const { encodeCursor, decodeCursor } = await import("@/lib/cursor-pagination");
-
-  const decodedCursor = cursor ? decodeCursor(cursor) : null;
-
-  const registrations = await prisma.registration.findMany({
-    where: { deletedAt: { not: null } },
-    include: {
-      user: {
-        select: { githubUsername: true },
-      },
-    },
-    orderBy: { deletedAt: "desc" },
-    ...(decodedCursor && {
-      skip: 1,
-      cursor: { id: decodedCursor },
-    }),
-    take: limit + 1,
+  const maintainerOrgId = (session.user as any).maintainerOrgId;
+  const result = await listDeletedRegistrations({
+    maintainerOrgId,
+    limit,
+    cursor,
   });
 
-  const hasMore = registrations.length > limit;
-  const pageData = registrations.slice(0, limit);
-  const nextCursor = hasMore
-    ? encodeCursor(pageData[pageData.length - 1].id)
-    : null;
-
-  return NextResponse.json({
-    registrations: pageData.map((reg) => ({
-      id: reg.id,
-      stellarAddress: reg.stellarAddress,
-      userId: reg.userId,
-      githubUsername: reg.user?.githubUsername ?? null,
-      deletedAt: reg.deletedAt,
-      createdAt: reg.createdAt,
-      updatedAt: reg.updatedAt,
-    })),
-    hasMore,
-    nextCursor: nextCursor ?? undefined,
-  });
+  return NextResponse.json(result);
 }

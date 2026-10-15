@@ -23,6 +23,7 @@ import {
   trackServerRegistrationCreated,
   trackServerRegistrationUpdated,
 } from "@/lib/analytics";
+import { recordRegistrationConflict } from "@/lib/maintainers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -134,27 +135,13 @@ export async function POST(request: NextRequest) {
         : null;
 
     if (existing && existing.userId !== session.user.id) {
-      if (prisma.registrationConflict?.create) {
-        await prisma.registrationConflict
-          .create({
-            data: {
-              attemptedAddress: stellarAddress,
-              attemptedUserId: session.user.id,
-              existingUserId: existing.userId,
-            },
-          })
-          .catch((err) =>
-            console.error("Failed to record RegistrationConflict:", err)
-          );
-      }
-
-      await recordAuditLog({
-        action: "registration.conflict",
-        actorId: session.user.id,
+      await recordRegistrationConflict({
+        attemptedAddress: stellarAddress,
+        attemptedUserId: session.user.id,
+        existingUserId: existing.userId,
+        maintainerOrgId: (session.user as any).maintainerOrgId ?? "default",
         actorLogin: session.user.githubUsername ?? null,
-        targetId: existing.id,
-        targetLabel: stellarAddress,
-        metadata: { attemptedAddress: stellarAddress },
+        existingRegistrationId: existing.id,
       });
 
       return NextResponse.json(
